@@ -1,0 +1,17 @@
+{
+  "id": "sdcsdcsdc",
+  "type": "SharedSlice",
+  "name": "Sdcsdcsdc",
+  "description": "A new Slice",
+  "variations": [
+    {
+      "id": "default",
+      "name": "Default",
+      "docURL": "...",
+      "version": "sktwi1xtmkfgx8626",
+      "description": "Default variation",
+      "primary": {},
+      "items": []
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "ps-ws-cli",
+  "version": "1.0.3",
+  "description": "CLI tool for browser automation",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "ps-ws": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "cli",
+    "browser-automation",
+    "websocket"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.16.0",
+    "commander": "^12.0.0",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "@types/ws": "^8.5.10",
+    "typescript": "^5.3.3"
+  }
+}

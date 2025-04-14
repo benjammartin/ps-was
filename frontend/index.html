@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PS-WS - Slice Manager</title>
+    <style>
+      :root {
+        --border: #000000;
+        --bg-light: #ffffff;
+        --text: #000000;
+        --text-secondary: #666666;
+        --header-height: 60px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: monospace;
+        color: var(--text);
+        background: white;
+        line-height: 1.5;
+      }
+
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: var(--header-height);
+        background: white;
+        border-bottom: 2px solid var(--border);
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+        z-index: 100;
+      }
+
+      .logo {
+        font-size: 1.25rem;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .main-container {
+        display: flex;
+        height: 100vh;
+        padding-top: var(--header-height);
+      }
+
+      .sidebar {
+        width: 250px;
+        border-right: 2px solid var(--border);
+        padding: 1.5rem;
+        background: var(--bg-light);
+      }
+
+      .content {
+        flex: 1;
+        padding: 2rem;
+        background: white;
+        overflow-y: auto;
+      }
+
+      .status {
+        padding: 0.5rem;
+        border-radius: 0;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        border: 2px solid var(--border);
+      }
+
+      .status.connected {
+        background: #ffffff;
+        border-style: dashed;
+      }
+
+      .status.disconnected {
+        background: #ffffff;
+        border-style: solid;
+      }
+
+      .session-box {
+        background: white;
+        border: 2px solid var(--border);
+        padding: 1.5rem;
+      }
+
+      .session-box h3 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: monospace;
+      }
+
+      .command-box {
+        background: var(--bg-light);
+        border: 2px solid var(--border);
+        padding: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 1rem 0;
+      }
+
+      #sessionCommand {
+        font-family: monospace;
+        font-size: 0.875rem;
+        color: var(--text);
+        flex-grow: 1;
+      }
+
+      button {
+        background: white;
+        color: black;
+        border: 2px solid var(--border);
+        padding: 0.5rem 1rem;
+        border-radius: 0;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 0.875rem;
+      }
+
+      button:hover {
+        background: black;
+        color: white;
+      }
+
+      .copy-button {
+        background: white;
+        border: 2px solid black;
+      }
+
+      .copy-button:hover {
+        background: black;
+        color: white;
+      }
+
+      .create-slice {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .create-slice input {
+        flex: 1;
+        padding: 0.5rem 1rem;
+        border: 2px solid var(--border);
+        border-radius: 0;
+        font-size: 0.875rem;
+        font-family: monospace;
+      }
+
+      .create-slice input:focus {
+        outline: none;
+        background: #f8f8f8;
+      }
+
+      .slices-list {
+        list-style: none;
+      }
+
+      .slice-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--border);
+        margin-bottom: 0.5rem;
+        background: white;
+      }
+
+      .slice-item:hover {
+        background: #f8f8f8;
+      }
+
+      .slice-name {
+        font-weight: bold;
+        font-size: 0.875rem;
+        font-family: monospace;
+      }
+
+      .delete {
+        background: white;
+        color: black;
+        padding: 0.25rem 0.5rem;
+        border: 2px solid black;
+      }
+
+      .delete:hover {
+        background: black;
+        color: white;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+        font-weight: bold;
+        font-family: monospace;
+      }
+
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="logo">
+        <span>🛠️</span>
+        <span>Slice Manager</span>
+      </div>
+    </header>
+
+    <div class="main-container">
+      <aside class="sidebar">
+        <div id="connectionStatus" class="status disconnected">
+          Waiting for connection...
+        </div>
+
+        <div id="sessionBox" class="session-box">
+          <h3>
+            <span>🚀</span>
+            <span>Get Started</span>
+          </h3>
+          <p>Run this command in your project directory:</p>
+          <div class="command-box">
+            <code id="sessionCommand">npx ps-ws-cli session=waiting...</code>
+            <button onclick="copyCommand()" class="copy-button">Copy</button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="content">
+        <div id="controlPanel" class="hidden">
+          <h2>Slices</h2>
+
+          <div class="create-slice">
+            <input
+              type="text"
+              id="sliceName"
+              placeholder="Enter slice name..."
+              autocomplete="off"
+            />
+            <button onclick="createSlice()">Create Slice</button>
+          </div>
+
+          <ul id="slicesList" class="slices-list">
+            <!-- Slices will be listed here -->
+          </ul>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      // Get or generate session ID
+      let sessionId = localStorage.getItem("ps-ws-sessionId");
+      if (!sessionId) {
+        sessionId = Math.random().toString(36).substring(2, 15);
+        localStorage.setItem("ps-ws-sessionId", sessionId);
+      }
+      document.getElementById("sessionCommand").textContent =
+        `npx ps-ws-cli session=${sessionId}`;
+
+      let ws;
+      const status = document.getElementById("connectionStatus");
+      const sessionBox = document.getElementById("sessionBox");
+      const controlPanel = document.getElementById("controlPanel");
+
+      function connect() {
+        ws = new WebSocket("wss://ps-ws-backend.fly.dev");
+
+        ws.onopen = () => {
+          ws.send(
+            JSON.stringify({ type: "register", role: "client", sessionId })
+          );
+          status.textContent = "Connected to server, waiting for agent...";
+          status.className = "status disconnected";
+        };
+
+        ws.onclose = () => {
+          status.textContent = "Disconnected from server, reconnecting...";
+          status.className = "status disconnected";
+          sessionBox.classList.remove("hidden");
+          controlPanel.classList.add("hidden");
+          setTimeout(connect, 1000);
+        };
+
+        ws.onerror = () => {
+          status.textContent = "Connection error, retrying...";
+          status.className = "status disconnected";
+        };
+
+        ws.onmessage = (e) => {
+          try {
+            const data = JSON.parse(e.data);
+
+            if (data.status === "connected") {
+              if (data.role === "agent" && data.sessionId === sessionId) {
+                status.textContent = "Connected to project";
+                status.className = "status connected";
+                sessionBox.classList.add("hidden");
+                controlPanel.classList.remove("hidden");
+                updateSlicesList();
+              }
+            } else if (data.slices) {
+              const slicesList = document.getElementById("slicesList");
+              slicesList.innerHTML = data.slices
+                .map(
+                  (slice) => `
+                  <li class="slice-item">
+                    <span class="slice-name">${slice.name}</span>
+                    <button class="delete" onclick="deleteSlice('${slice.name}')">Delete</button>
+                  </li>
+                `
+                )
+                .join("");
+            } else if (
+              data.status === "ok" &&
+              data.message &&
+              data.message.includes("deleted")
+            ) {
+              updateSlicesList();
+            }
+          } catch (error) {
+            console.error("Error processing message:", error);
+          }
+        };
+      }
+
+      connect();
+
+      function updateSlicesList() {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(
+            JSON.stringify({
+              type: "list-slices",
+              sessionId,
+            })
+          );
+        }
+      }
+
+      function createSlice() {
+        const name = document.getElementById("sliceName").value.trim();
+        if (!name) return;
+
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(
+            JSON.stringify({
+              type: "create-slice",
+              name,
+              sessionId,
+            })
+          );
+
+          document.getElementById("sliceName").value = "";
+          updateSlicesList();
+        }
+      }
+
+      function deleteSlice(name) {
+        if (confirm(`Are you sure you want to delete the slice "${name}"?`)) {
+          if (ws.readyState === WebSocket.OPEN) {
+            ws.send(
+              JSON.stringify({
+                type: "delete-slice",
+                name,
+                sessionId,
+              })
+            );
+          }
+        }
+      }
+
+      function copyCommand() {
+        const command = document.getElementById("sessionCommand").textContent;
+        navigator.clipboard.writeText(command).then(() => {
+          const button = document.querySelector(".copy-button");
+          button.textContent = "Copied!";
+          setTimeout(() => {
+            button.textContent = "Copy";
+          }, 2000);
+        });
+      }
+
+      document.getElementById("sliceName").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          createSlice();
+        }
+      });
+
+      window.addEventListener("beforeunload", (e) => {
+        if (controlPanel.classList.contains("hidden")) return;
+        e.preventDefault();
+        e.returnValue = "Changes you made may not be saved.";
+        return e.returnValue;
+      });
+    </script>
+  </body>
+</html>

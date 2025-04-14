@@ -1,0 +1,11 @@
+{
+  "name": "ps-ws-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "bun": "^1.0.26"
+  },
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}
