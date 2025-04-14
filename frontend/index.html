@@ -49,99 +49,89 @@
 
       .main-container {
         display: flex;
-        height: 100vh;
+        min-height: 100vh;
         padding-top: var(--header-height);
-      }
-
-      .sidebar {
-        width: 250px;
-        border-right: 2px solid var(--border);
-        padding: 1.5rem;
-        background: var(--bg-light);
       }
 
       .content {
         flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         padding: 2rem;
-        background: white;
-        overflow-y: auto;
       }
 
       .status {
-        padding: 0.5rem;
-        border-radius: 0;
-        font-size: 0.875rem;
-        margin-bottom: 1.5rem;
+        position: fixed;
+        top: calc(var(--header-height) + 1rem);
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 0.5rem 1rem;
         border: 2px solid var(--border);
+        font-size: 0.875rem;
+        background: white;
+        z-index: 10;
       }
 
       .status.connected {
-        background: #ffffff;
         border-style: dashed;
       }
 
       .status.disconnected {
-        background: #ffffff;
         border-style: solid;
       }
 
-      .session-box {
+      .get-started-box {
         background: white;
-        border: 2px solid var(--border);
-        padding: 1.5rem;
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
       }
 
-      .session-box h3 {
-        font-size: 1.25rem;
+      .empty-state {
+        background: white;
+        text-align: center;
+        max-width: 500px;
+        width: 100%;
+      }
+
+      .empty-state-icon {
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 2rem;
+      }
+
+      .empty-state-title {
+        font-size: 2rem;
         margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-family: monospace;
-      }
-
-      .command-box {
-        background: var(--bg-light);
-        border: 2px solid var(--border);
-        padding: 0.75rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin: 1rem 0;
-      }
-
-      #sessionCommand {
-        font-family: monospace;
-        font-size: 0.875rem;
-        color: var(--text);
-        flex-grow: 1;
-      }
-
-      button {
-        background: white;
-        color: black;
-        border: 2px solid var(--border);
-        padding: 0.5rem 1rem;
-        border-radius: 0;
         font-weight: bold;
-        cursor: pointer;
-        font-family: monospace;
-        font-size: 0.875rem;
       }
 
-      button:hover {
+      .empty-state-text {
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      .empty-state-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 2rem;
+        font-size: 1rem;
+        border: 2px solid var(--border);
+      }
+
+      .empty-state-button:hover {
         background: black;
         color: white;
       }
 
-      .copy-button {
-        background: white;
-        border: 2px solid black;
-      }
-
-      .copy-button:hover {
-        background: black;
-        color: white;
+      .slices-view {
+        width: 100%;
+        max-width: 800px;
+        padding: 2rem;
       }
 
       .create-slice {
@@ -154,7 +144,6 @@
         flex: 1;
         padding: 0.5rem 1rem;
         border: 2px solid var(--border);
-        border-radius: 0;
         font-size: 0.875rem;
         font-family: monospace;
       }
@@ -175,40 +164,49 @@
         padding: 0.75rem 1rem;
         border: 2px solid var(--border);
         margin-bottom: 0.5rem;
-        background: white;
-      }
-
-      .slice-item:hover {
-        background: #f8f8f8;
       }
 
       .slice-name {
         font-weight: bold;
         font-size: 0.875rem;
-        font-family: monospace;
       }
 
-      .delete {
+      .command-box {
+        background: var(--bg-light);
+        border: 2px solid var(--border);
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin: 2rem 0;
+        text-align: left;
+      }
+
+      #sessionCommand {
+        font-family: monospace;
+        font-size: 1rem;
+        color: var(--text);
+        flex-grow: 1;
+      }
+
+      button {
         background: white;
         color: black;
-        padding: 0.25rem 0.5rem;
-        border: 2px solid black;
+        border: 2px solid var(--border);
+        padding: 0.5rem 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        font-family: monospace;
+        font-size: 0.875rem;
       }
 
-      .delete:hover {
+      button:hover {
         background: black;
         color: white;
       }
 
-      h2 {
-        font-size: 1.5rem;
-        margin-bottom: 1.5rem;
-        font-weight: bold;
-        font-family: monospace;
-      }
-
       .hidden {
-        display: none;
+        display: none !important;
       }
     </style>
   </head>
@@ -220,13 +218,14 @@
       </div>
     </header>
 
-    <div class="main-container">
-      <aside class="sidebar">
-        <div id="connectionStatus" class="status disconnected">
-          Waiting for connection...
-        </div>
+    <div id="connectionStatus" class="status disconnected">
+      Waiting for connection...
+    </div>
 
-        <div id="sessionBox" class="session-box">
+    <div class="main-container">
+      <main class="content">
+        <!-- Get Started View -->
+        <div id="getStartedView" class="get-started-box">
           <h3>
             <span>🚀</span>
             <span>Get Started</span>
@@ -237,12 +236,28 @@
             <button onclick="copyCommand()" class="copy-button">Copy</button>
           </div>
         </div>
-      </aside>
 
-      <main class="content">
-        <div id="controlPanel" class="hidden">
+        <!-- Empty State -->
+        <div id="emptyState" class="empty-state hidden">
+          <img
+            src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTIwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDEyMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPHJlY3Qgd2lkdGg9IjEyMCIgaGVpZ2h0PSIxMjAiIGZpbGw9IndoaXRlIi8+CiAgPHJlY3QgeD0iMjAiIHk9IjIwIiB3aWR0aD0iODAiIGhlaWdodD0iODAiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iNCIvPgogIDxsaW5lIHgxPSI0MCIgeTE9IjYwIiB4Mj0iODAiIHkyPSI2MCIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSI0Ii8+CiAgPGxpbmUgeDE9IjYwIiB5MT0iNDAiIHgyPSI2MCIgeTI9IjgwIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjQiLz4KPC9zdmc+"
+            class="empty-state-icon"
+            alt="Empty box"
+          />
+          <h2 class="empty-state-title">Welcome to Slice Manager</h2>
+          <p class="empty-state-text">
+            Get started by creating your first slice. Slices help you organize
+            and manage your project components.
+          </p>
+          <button class="empty-state-button" onclick="focusCreateInput()">
+            <span>+</span>
+            <span>Create your first slice</span>
+          </button>
+        </div>
+
+        <!-- Slices View -->
+        <div id="slicesView" class="slices-view hidden">
           <h2>Slices</h2>
-
           <div class="create-slice">
             <input
               type="text"
@@ -252,16 +267,12 @@
             />
             <button onclick="createSlice()">Create Slice</button>
           </div>
-
-          <ul id="slicesList" class="slices-list">
-            <!-- Slices will be listed here -->
-          </ul>
+          <ul id="slicesList" class="slices-list"></ul>
         </div>
       </main>
     </div>
 
     <script>
-      // Get or generate session ID
       let sessionId = localStorage.getItem("ps-ws-sessionId");
       if (!sessionId) {
         sessionId = Math.random().toString(36).substring(2, 15);
@@ -270,10 +281,12 @@
       document.getElementById("sessionCommand").textContent =
         `npx ps-ws-cli session=${sessionId}`;
 
-      let ws;
       const status = document.getElementById("connectionStatus");
-      const sessionBox = document.getElementById("sessionBox");
-      const controlPanel = document.getElementById("controlPanel");
+      const getStartedView = document.getElementById("getStartedView");
+      const emptyState = document.getElementById("emptyState");
+      const slicesView = document.getElementById("slicesView");
+
+      let ws;
 
       function connect() {
         ws = new WebSocket("wss://ps-ws-backend.fly.dev");
@@ -289,8 +302,7 @@
         ws.onclose = () => {
           status.textContent = "Disconnected from server, reconnecting...";
           status.className = "status disconnected";
-          sessionBox.classList.remove("hidden");
-          controlPanel.classList.add("hidden");
+          showView("getStarted");
           setTimeout(connect, 1000);
         };
 
@@ -307,22 +319,10 @@
               if (data.role === "agent" && data.sessionId === sessionId) {
                 status.textContent = "Connected to project";
                 status.className = "status connected";
-                sessionBox.classList.add("hidden");
-                controlPanel.classList.remove("hidden");
                 updateSlicesList();
               }
             } else if (data.slices) {
-              const slicesList = document.getElementById("slicesList");
-              slicesList.innerHTML = data.slices
-                .map(
-                  (slice) => `
-                  <li class="slice-item">
-                    <span class="slice-name">${slice.name}</span>
-                    <button class="delete" onclick="deleteSlice('${slice.name}')">Delete</button>
-                  </li>
-                `
-                )
-                .join("");
+              updateSlicesView(data.slices);
             } else if (
               data.status === "ok" &&
               data.message &&
@@ -336,7 +336,43 @@
         };
       }
 
-      connect();
+      function showView(view) {
+        getStartedView.classList.add("hidden");
+        emptyState.classList.add("hidden");
+        slicesView.classList.add("hidden");
+
+        switch (view) {
+          case "getStarted":
+            getStartedView.classList.remove("hidden");
+            break;
+          case "empty":
+            emptyState.classList.remove("hidden");
+            break;
+          case "slices":
+            slicesView.classList.remove("hidden");
+            break;
+        }
+      }
+
+      function updateSlicesView(slices) {
+        if (!slices || slices.length === 0) {
+          showView("empty");
+          return;
+        }
+
+        showView("slices");
+        const slicesList = document.getElementById("slicesList");
+        slicesList.innerHTML = slices
+          .map(
+            (slice) => `
+            <li class="slice-item">
+              <span class="slice-name">${slice.name}</span>
+              <button class="delete" onclick="deleteSlice('${slice.name}')">Delete</button>
+            </li>
+          `
+          )
+          .join("");
+      }
 
       function updateSlicesList() {
         if (ws.readyState === WebSocket.OPEN) {
@@ -361,7 +397,6 @@
               sessionId,
             })
           );
-
           document.getElementById("sliceName").value = "";
           updateSlicesList();
         }
@@ -392,18 +427,20 @@
         });
       }
 
+      function focusCreateInput() {
+        showView("slices");
+        setTimeout(() => {
+          document.getElementById("sliceName").focus();
+        }, 0);
+      }
+
       document.getElementById("sliceName").addEventListener("keypress", (e) => {
         if (e.key === "Enter") {
           createSlice();
         }
       });
 
-      window.addEventListener("beforeunload", (e) => {
-        if (controlPanel.classList.contains("hidden")) return;
-        e.preventDefault();
-        e.returnValue = "Changes you made may not be saved.";
-        return e.returnValue;
-      });
+      connect();
     </script>
   </body>
 </html>
