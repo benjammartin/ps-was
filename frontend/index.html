@@ -329,17 +329,18 @@
               if (data.role === "agent" && data.sessionId === sessionId) {
                 status.textContent = "Connected to project";
                 status.className = "status connected";
-                showView("empty");
-                updateSlicesList();
+                // Don't show empty state yet, wait for slice list
+                updateSlicesList(); // Request slices, the response will handle the view
               }
             } else if (data.slices) {
+              // This is the only place that decides between empty/slices view
               updateSlicesView(data.slices);
             } else if (
               data.status === "ok" &&
               data.message &&
               data.message.includes("deleted")
             ) {
-              updateSlicesList();
+              updateSlicesList(); // Refresh list after delete
             }
           } catch (error) {
             console.error("Error processing message:", error);
@@ -451,6 +452,8 @@
         }
       });
 
+      // Show the initial view before connecting
+      showView("getStarted");
       connect();
     </script>
   </body>
