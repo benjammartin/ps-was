@@ -294,53 +294,90 @@
       let ws;
 
       function connect() {
+        console.log("Attempting to connect...");
         ws = new WebSocket("wss://ps-ws-backend.fly.dev");
 
         ws.onopen = () => {
-          // Use the same session ID when reconnecting
+          console.log("WebSocket connection opened.");
+          const currentSessionId = localStorage.getItem(STORAGE_KEY);
+          console.log(
+            `Registering client with session ID: ${currentSessionId}`
+          );
           ws.send(
             JSON.stringify({
               type: "register",
               role: "client",
-              sessionId: localStorage.getItem(STORAGE_KEY),
+              sessionId: currentSessionId,
             })
           );
+          // Don't request slices here, wait for agent confirmation
           status.textContent = "Connected to server, waiting for agent...";
           status.className = "status disconnected";
         };
 
-        ws.onclose = () => {
+        ws.onclose = (event) => {
+          console.warn("WebSocket connection closed:", event);
           status.textContent = "Disconnected from server, reconnecting...";
           status.className = "status disconnected";
           showView("getStarted");
           setTimeout(connect, 1000);
         };
 
-        ws.onerror = () => {
+        ws.onerror = (error) => {
+          console.error("WebSocket error:", error);
           status.textContent = "Connection error, retrying...";
           status.className = "status disconnected";
         };
 
         ws.onmessage = (e) => {
+          console.log("Message received:", e.data);
           try {
             const data = JSON.parse(e.data);
+            console.log("Parsed message data:", data);
 
-            if (data.status === "connected") {
-              if (data.role === "agent" && data.sessionId === sessionId) {
-                status.textContent = "Connected to project";
-                status.className = "status connected";
-                // Don't show empty state yet, wait for slice list
-                updateSlicesList(); // Request slices, the response will handle the view
-              }
-            } else if (data.slices) {
-              // This is the only place that decides between empty/slices view
-              updateSlicesView(data.slices);
-            } else if (
-              data.status === "ok" &&
-              data.message &&
-              data.message.includes("deleted")
-            ) {
-              updateSlicesList(); // Refresh list after delete
+            const currentSessionId = localStorage.getItem(STORAGE_KEY);
+
+            switch (data.type) {
+              case "agent-disconnected":
+                if (data.sessionId === currentSessionId) {
+                  console.log("Agent disconnected for this session.");
+                  status.textContent =
+                    "Agent disconnected. Run the command again.";
+                  status.className = "status disconnected";
+                  showView("getStarted");
+                }
+                break;
+
+              default:
+                // Handle status confirmation first
+                if (data.status === "connected") {
+                  if (
+                    data.role === "agent" &&
+                    data.sessionId === currentSessionId
+                  ) {
+                    console.log(
+                      "Agent connection confirmed for this session. Requesting slices."
+                    );
+                    status.textContent = "Connected to project";
+                    status.className = "status connected";
+                    // Now that agent is confirmed, request the slice list
+                    updateSlicesList();
+                  }
+                }
+                // Then handle slice list response
+                else if (data.slices) {
+                  console.log("Received slice list:", data.slices);
+                  updateSlicesView(data.slices); // This determines empty vs slices view
+                }
+                // Handle other messages like deletion confirmation
+                else if (
+                  data.status === "ok" &&
+                  data.message &&
+                  data.message.includes("deleted")
+                ) {
+                  console.log("Slice deletion confirmed, refreshing list.");
+                  updateSlicesList();
+                }
             }
           } catch (error) {
             console.error("Error processing message:", error);
@@ -349,6 +386,7 @@
       }
 
       function showView(view) {
+        console.log(`Showing view: ${view}`);
         getStartedView.classList.add("hidden");
         emptyState.classList.add("hidden");
         slicesView.classList.add("hidden");
@@ -367,11 +405,14 @@
       }
 
       function updateSlicesView(slices) {
+        console.log("Updating slices view with:", slices);
         if (!slices || slices.length === 0) {
+          console.log("Slice list is empty, showing empty state.");
           showView("empty");
           return;
         }
 
+        console.log("Slice list has items, showing slices view.");
         showView("slices");
         const slicesList = document.getElementById("slicesList");
         slicesList.innerHTML = slices

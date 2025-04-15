@@ -37,6 +37,20 @@ serve({
             ws.send(
               JSON.stringify({ status: "connected", role: "client", sessionId })
             );
+
+            // If agent is already connected for this session, notify the new client immediately
+            if (session.agent) {
+              console.log(
+                `Agent already present for session ${sessionId}, notifying new client.`
+              );
+              ws.send(
+                JSON.stringify({
+                  status: "connected",
+                  role: "agent",
+                  sessionId,
+                })
+              );
+            }
           } else if (data.role === "agent") {
             // Create or get session
             if (!sessions.has(sessionId)) {
@@ -110,12 +124,14 @@ serve({
       for (const [sessionId, session] of sessions.entries()) {
         if (ws === session.agent) {
           session.agent = null;
-          // Notify all clients
+          // Notify all clients using the correct message type
+          console.log(
+            `Agent disconnected for session ${sessionId}, notifying clients.`
+          );
           for (const client of session.clients) {
             client.send(
               JSON.stringify({
-                status: "disconnected",
-                role: "agent",
+                type: "agent-disconnected",
                 sessionId,
               })
             );
