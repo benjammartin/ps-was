@@ -273,14 +273,19 @@
     </div>
 
     <script>
-      let sessionId = localStorage.getItem("ps-ws-sessionId");
+      const STORAGE_KEY = "ps-ws-sessionId";
+      let sessionId = localStorage.getItem(STORAGE_KEY);
+
+      // Only generate a new ID if one doesn't exist
       if (!sessionId) {
         sessionId = Math.random().toString(36).substring(2, 15);
-        localStorage.setItem("ps-ws-sessionId", sessionId);
+        localStorage.setItem(STORAGE_KEY, sessionId);
       }
+
       document.getElementById("sessionCommand").textContent =
         `npx ps-ws-cli session=${sessionId}`;
 
+      // When disconnecting, we keep the same session ID
       const status = document.getElementById("connectionStatus");
       const getStartedView = document.getElementById("getStartedView");
       const emptyState = document.getElementById("emptyState");
@@ -292,8 +297,13 @@
         ws = new WebSocket("wss://ps-ws-backend.fly.dev");
 
         ws.onopen = () => {
+          // Use the same session ID when reconnecting
           ws.send(
-            JSON.stringify({ type: "register", role: "client", sessionId })
+            JSON.stringify({
+              type: "register",
+              role: "client",
+              sessionId: localStorage.getItem(STORAGE_KEY),
+            })
           );
           status.textContent = "Connected to server, waiting for agent...";
           status.className = "status disconnected";
@@ -379,7 +389,7 @@
           ws.send(
             JSON.stringify({
               type: "list-slices",
-              sessionId,
+              sessionId: localStorage.getItem(STORAGE_KEY),
             })
           );
         }
@@ -394,7 +404,7 @@
             JSON.stringify({
               type: "create-slice",
               name,
-              sessionId,
+              sessionId: localStorage.getItem(STORAGE_KEY),
             })
           );
           document.getElementById("sliceName").value = "";
@@ -409,7 +419,7 @@
               JSON.stringify({
                 type: "delete-slice",
                 name,
-                sessionId,
+                sessionId: localStorage.getItem(STORAGE_KEY),
               })
             );
           }
