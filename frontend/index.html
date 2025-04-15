@@ -329,6 +329,7 @@
               if (data.role === "agent" && data.sessionId === sessionId) {
                 status.textContent = "Connected to project";
                 status.className = "status connected";
+                showView("empty");
                 updateSlicesList();
               }
             } else if (data.slices) {
